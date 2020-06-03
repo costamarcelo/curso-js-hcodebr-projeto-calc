@@ -1,7 +1,6 @@
 class CalcController {
 
     constructor(){
-
         //underline antes do nome do atributo significa que é privado por convensão
         this._operation = [];
         this._locale = 'pt-BR';
@@ -36,19 +35,35 @@ class CalcController {
     }
     
     getLastOperation(){
-
         return this._operation[this._operation.length - 1];
     }
 
     setLastOperation(value){
-
         this._operation[this._operation.length - 1] = value;
     }
 
-    isOperator(value){
-        
+    isOperator(value){ 
         return (['+', '-', '*', '/', '%'].indexOf(value) > -1);
+    }
 
+    pushOperation(value){
+
+        this._operation.push(value);
+
+        if(this._operation.length > 3){
+
+            this.calc();            
+
+        }
+    }
+
+    calc(){
+
+        let last = this._operation.pop();
+
+        let result = eval(this._operation.join(""));
+
+        this._operation = [result, last];
     }
 
     addOperation(value){
@@ -57,27 +72,31 @@ class CalcController {
             //String
             if (this.isOperator(value)) {
                 //Replace operator
-                this.push.setLastOperation(value);
+                this.setLastOperation(value);
 
             } else if(isNaN(value)){
-                //Other button
-                console.log(value);
+                //Other
+                console.log('Other', value);
 
             } else {
                 //Concatenate
-                this._operation.push(value);
+                this.pushOperation(value);
             }
 
 
         } else {
-            //Number
-            let newValue = this.getLastOperation().toString() + value.toString();
-            this.setLastOperation(parseInt(newValue));
 
+            if (this.isOperator(value)) {
+                this.pushOperation(value);
+
+            } else {
+                //Number
+                let newValue = this.getLastOperation().toString() + value.toString();
+                this.setLastOperation(parseInt(newValue));
+            }
+            
         }
 
-        //this._operation.push(value);
-        console.log(this._operation);
     }
 
     setError(){
@@ -136,12 +155,13 @@ class CalcController {
 
     initButtonEvents(){
         let buttons = document.querySelectorAll('#buttons > g, #parts > g');
-        buttons.forEach((btn, index)=>{
+        
+        buttons.forEach((btn, index) => {
             this.addEventListenerAll(btn, 'click drag', e => {
                 let textBtn = btn.className.baseVal.replace('btn-', '');
-
                 this.execBtn(textBtn);
             });
+
             this.addEventListenerAll(btn, 'mouseover mouseup mousedown', e => {
                 btn.style.cursor = 'pointer';
             });
